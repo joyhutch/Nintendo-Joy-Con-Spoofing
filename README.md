@@ -5,4 +5,7 @@
 - https://github.com/JSnowden33/Wii-Bluetooth-Replacement
 - https://github.com/ricardoquesada/bluepad32
 
+## Neccessary Hardware
+* ESP32 Board (not a newer model like ESP32-Sx)
+* Switch Console with Joycon controllers
 
