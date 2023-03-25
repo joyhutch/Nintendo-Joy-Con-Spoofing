@@ -43,4 +43,20 @@ Met with the professor to confirm goals and get a better understanding of resour
         - solution steps - re do step 2 - 4, check 7
         - running into issues with lc3.h [LEFT OFF]
 
-                
+## March 21st
+- Realized the legacy versions of ESP and btstack, specifically the latter, is no longer supported and so we switched to the newest versions of everything. This also required switching from GNUMake to CMake
+- forked the Wii-Bluetooth-Replacement repo and isolated the esp32 part
+- updated the build system so that everything could build correctly
+- now running into issues due to some functionality in the repo being depricated 
+
+## March 25th 
+- uart_controller.c > line 186 uart_driver_install 
+    lines 187 - 191; commented out for now
+    uart_isr_register() is depricated and does not exist 
+- make and flash to esp board [with error lines commented out]
+- timer_group and timer.h depricated 
+- uart_controller.c seems to be mostly depricated, embarking on a new journey of completely rewriting this file 
+- fixed issues -- guess is that a config somewhere got messed up -- by copying code into clean repo and building until build ran correctly
+- flash and run to board, printed "Joy-Con Connected!"
+    [we have alot of code commented out and the code errors right after the print statement]
+- fixed some errors & started to replace much of the deprecated code with the newest api 
