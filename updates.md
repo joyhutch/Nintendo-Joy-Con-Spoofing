@@ -41,6 +41,6 @@ Met with the professor to confirm goals and get a better understanding of resour
             WARNING: Compiler version is not supported: 12.2.0
             Expected to see version(s): 8.4.0
         - solution steps - re do step 2 - 4, check 7
-        -  
+        - running into issues with lc3.h [LEFT OFF]
 
                 
