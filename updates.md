@@ -60,3 +60,9 @@ Met with the professor to confirm goals and get a better understanding of resour
 - flash and run to board, printed "Joy-Con Connected!"
     [we have alot of code commented out and the code errors right after the print statement]
 - fixed some errors & started to replace much of the deprecated code with the newest api 
+
+## April 1st
+- successfully ran hid_mouse_demo in btstack/example
+- switched to using new repo: https://github.com/mart1nro/joycontrol.git
+- was able to connect controller to switch console, but connect exits everytime we leave
+    the 'Change Grip/Order' menu
