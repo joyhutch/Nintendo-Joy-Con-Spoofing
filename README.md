@@ -4,6 +4,7 @@
 - https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering
 - https://github.com/JSnowden33/Wii-Bluetooth-Replacement
 - https://github.com/ricardoquesada/bluepad32
+- https://github.com/mart1nro/joycontrol
 
 ## bstack 
 ### connectivity in both bluepad & Wii-Bluetooth-Replacement use Btstack
