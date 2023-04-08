@@ -21,7 +21,7 @@ async def _send_empty_input_reports(transport):
         await asyncio.sleep(1)
 
 async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=None, reconnect_bt_addr=None,
-                            capture_file=None, interactive=False):
+                            capture_file=None, interactive=False, unpair=False):
     """
     :param protocol_factory: Factory function returning a ControllerProtocol instance
     :param ctl_psm: hid control channel port
@@ -48,6 +48,8 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     #    await hid.set_address("94:58:CB" + bt_addr[8:], interactive=interactive)
     #    bt_addr = hid.get_address()
 
+    ns_addr = None
+
     if reconnect_bt_addr is None:
         if interactive:
             if len(hid.get_UUIDs()) > 3:
@@ -63,8 +65,13 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
             if len(hid.get_UUIDs()) > 3:
                 logger.warning("detected too many SDP-records. Switch might refuse connection.")
             b = hid.get_paired_switches()
-            if b:
+
+            if b and not unpair:
                 logger.warning(f"Attempting initial pairing, but switches are paired: {b}")
+
+            if unpair:
+                for sw in hid.get_paired_switches():
+                    hid.unpair_path(sw)
 
         ctl_sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP)
         itr_sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP)
@@ -89,8 +96,8 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
             await asyncio.sleep(1)
             hid = HidDevice(device_id=device_id)
 
-            ctl_sock.bind((bt_addr, ctl_psm))
-            itr_sock.bind((bt_addr, itr_psm))
+            ctl_sock.bind((socket.BDADDR_ANY, ctl_psm))
+            itr_sock.bind((socket.BDADDR_ANY, itr_psm))
 
         ctl_sock.listen(1)
         itr_sock.listen(1)
@@ -122,6 +129,8 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
         client_itr, itr_address = await loop.sock_accept(itr_sock)
         logger.info(f'Accepted connection at psm {itr_psm} from {itr_address}')
         assert ctl_address[0] == itr_address[0]
+
+        ns_addr = ctl_address[0]
 
         # stop advertising
         hid.discoverable(False)
@@ -182,4 +191,4 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
         pass
     """
 
-    return protocol.transport, protocol
+    return protocol.transport, protocol, ns_addr

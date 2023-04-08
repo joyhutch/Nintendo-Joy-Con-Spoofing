@@ -173,12 +173,13 @@ class ControllerProtocol(BaseProtocol):
                 await self._write(input_report)
             except:
                 break
+
             # calculate delay
             self.send_delay = debug.get_delay(self.send_delay) #debug hook
             active_time = time.time() - last_send_time
             sleep_time = self.send_delay - active_time
             if sleep_time < 0:
-                logger.warning(f'Code is running {abs(sleep_time)} s too slow!')
+                # logger.warning(f'Code is running {abs(sleep_time)} s too slow!')
                 sleep_time = 0
 
             try:
