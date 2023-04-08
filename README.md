@@ -5,6 +5,8 @@
 - https://github.com/JSnowden33/Wii-Bluetooth-Replacement
 - https://github.com/ricardoquesada/bluepad32
 - https://github.com/mart1nro/joycontrol
+- https://github.com/Poohl/joycontrol
+- https://github.com/lowlevel-1989/joytransfer
 
 ## bstack 
 ### connectivity in both bluepad & Wii-Bluetooth-Replacement use Btstack
