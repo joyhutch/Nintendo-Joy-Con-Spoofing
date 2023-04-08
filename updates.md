@@ -68,3 +68,10 @@ Met with the professor to confirm goals and get a better understanding of resour
     the 'Change Grip/Order' menu
 - joy used: https://scribles.net/enabling-bluetooth-in-virtualbox/ 
     to fix the bluetooth issues she was experiencing in virtualbox vm
+
+## April 8th
+- found some additional resources of people running into similar issues we were experiencing with the emulated controller being disconnected for unknown reasons
+- ava was able to run new code that was able to reconnect the controller with the console after the connection is dropped 
+    - does not function reliably 
+- joy's bluetooth service on her vm has stopped working for some reason 
+
