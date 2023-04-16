@@ -172,8 +172,9 @@ class ControllerProtocol(BaseProtocol):
             input_report = self._generate_input_report()
             try:
                 await self._write(input_report)
-            except Exception as e:
+            except:
                 print_exc()
+                
                 break
 
             # calculate delay
