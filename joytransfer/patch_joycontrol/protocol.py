@@ -186,7 +186,7 @@ class ControllerProtocol(BaseProtocol):
                 await asyncio.wait_for(self._input_report_wakeup.wait(), timeout=sleep_time)
                 self._input_report_wakeup.clear()
             except asyncio.TimeoutError as err:
-                pass
+                logger.warning("Writer timed out...")
 
         logger.warning("Writer exited...")
         return None

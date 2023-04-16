@@ -183,7 +183,7 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     protocol.connection_made(transport)
 
     # HACK: send some empty input reports until the Switch decides to reply
-    # future = asyncio.ensure_future(_send_empty_input_reports(transport))
+    future = asyncio.ensure_future(_send_empty_input_reports(transport))
     await protocol.wait_for_output_report()
     
     # future.cancel()

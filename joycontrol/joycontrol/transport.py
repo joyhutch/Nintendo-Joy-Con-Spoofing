@@ -87,11 +87,11 @@ class L2CAP_Transport(asyncio.Transport):
         await self._is_reading.wait()
         data = await self._loop.sock_recv(self._itr_sock, self._read_buffer_size)
 
-        # logger.debug(f'received "{list(data)}"')
+        logger.info(f'received "{list(data)}"')
 
         if not data:
             # disconnect happened
-            logger.error('No data received.')
+            logger.error('No data received.' + str(data))
             self._protocol.connection_lost()
 
         if self._capture_file is not None:
