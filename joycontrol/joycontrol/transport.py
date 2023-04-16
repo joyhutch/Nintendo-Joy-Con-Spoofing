@@ -153,13 +153,13 @@ class L2CAP_Transport(asyncio.Transport):
     def can_write_eof():
         return False
 
-    def get_write_buffer_size():
+    def get_write_buffer_size(self):
         return self._write_window.get_aquired()
 
-    def get_write_buffer_limits():
+    def get_write_buffer_limits(self):
         return (0, self._write_window.get_limit())
 
-    def set_write_buffer_limits(high=None, low=None):
+    def set_write_buffer_limits(self, high=None, low=None):
         if low:
             raise NotImplementedError("Cannot set a lower bound for in flight data...")
 

@@ -54,9 +54,9 @@ async def _main(args, c, q, reconnect_bt_addr=None):
         if args.auto:
             controller_state.button_state.set_button('a', pushed=True)
             await controller_state.send()
+            print('Sent `A`')
         else:
             print('INFO: Press the button A or B or HOME')
-        print()
 
         while 1:
             await asyncio.sleep(0.2)
@@ -146,14 +146,18 @@ if __name__ == '__main__':
             queue.get() # lock console
 
         while p.is_alive():
-            cmd = input('cmd >> ')
+            try:
+                cmd = input('cmd >> ')
+            except EOFError:
+                cmd = 'q'
             if cmd in ['exit', 'quit', 'q', 'bye', 'shutdown']:
                 p.kill()
                 break
 
             queue.put(cmd)
             time.sleep(0.2) # not needed
-
+        if not p.is_alive():
+            print("\nprocess died :(")
         # wait reconnection
         time.sleep(2) # important 2 or more
         count += 1

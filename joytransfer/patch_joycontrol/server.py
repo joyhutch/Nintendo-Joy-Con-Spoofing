@@ -12,7 +12,9 @@ from joycontrol.transport import L2CAP_Transport
 
 PROFILE_PATH = pkg_resources.resource_filename('joycontrol', 'profile/sdp_record_hid.xml')
 logger = logging.getLogger(__name__)
-
+logger.warning = lambda *x: print('[server] warning:', *x) # type: ignore
+logger.info = lambda *x: print('[server] info:', *x) # type: ignore
+logger.debug = lambda *x: print('[server] debug:', *x) # type: ignore
 
 async def _send_empty_input_reports(transport):
     report = InputReport()
@@ -21,7 +23,7 @@ async def _send_empty_input_reports(transport):
         await asyncio.sleep(1)
 
 async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=None, reconnect_bt_addr=None,
-                            capture_file=None, interactive=False, unpair=False):
+                            capture_file=None, interactive=True, unpair=False):
     """
     :param protocol_factory: Factory function returning a ControllerProtocol instance
     :param ctl_psm: hid control channel port
@@ -42,11 +44,9 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     protocol = protocol_factory()
 
     hid = HidDevice(device_id=device_id)
+    print(f"{hid.get_UUIDs()=}")
 
     bt_addr = hid.get_address()
-    #if bt_addr[:8] != "94:58:CB":
-    #    await hid.set_address("94:58:CB" + bt_addr[8:], interactive=interactive)
-    #    bt_addr = hid.get_address()
 
     ns_addr = None
 
@@ -58,9 +58,11 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
                 print("https://github.com/Poohl/joycontrol/issues/4 if it doesn't work")
             for sw in hid.get_paired_switches():
                 print(f"Warning: a switch ({sw}) was found paired, do you want to unpair it?")
-                i = input("y/n [y]: ")
-                if i == '' or i == 'y' or i == 'Y':
+                # i = input("y/n [y]: ")
+                if True: # not i.strip() or i == 'y' or i == 'Y'
+                    print("attempting to unpair...", end="")
                     hid.unpair_path(sw)
+                    print("unpaired.")
         else:
             if len(hid.get_UUIDs()) > 3:
                 logger.warning("detected too many SDP-records. Switch might refuse connection.")
@@ -125,9 +127,9 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
 
         loop = asyncio.get_event_loop()
         client_ctl, ctl_address = await loop.sock_accept(ctl_sock)
-        logger.info(f'Accepted connection at psm {ctl_psm} from {ctl_address}')
+        logger.info(f'Accepted control connection at psm {ctl_psm} from {ctl_address}')
         client_itr, itr_address = await loop.sock_accept(itr_sock)
-        logger.info(f'Accepted connection at psm {itr_psm} from {itr_address}')
+        logger.info(f'Accepted interrupt connection at psm {itr_psm} from {itr_address}')
         assert ctl_address[0] == itr_address[0]
 
         ns_addr = ctl_address[0]
@@ -181,14 +183,13 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     protocol.connection_made(transport)
 
     # HACK: send some empty input reports until the Switch decides to reply
-    future = asyncio.ensure_future(_send_empty_input_reports(transport))
+    # future = asyncio.ensure_future(_send_empty_input_reports(transport))
     await protocol.wait_for_output_report()
-    """
-    future.cancel()
-    try:
-        await future
-    except asyncio.CancelledError:
-        pass
-    """
+    
+    # future.cancel()
+    # try:
+    #     await future
+    # except asyncio.CancelledError:
+    #     pass
 
     return protocol.transport, protocol, ns_addr
