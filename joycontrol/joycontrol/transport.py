@@ -11,7 +11,7 @@ from joycontrol import utils
 from joycontrol.my_semaphore import MyBoundedSemaphore
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class NotConnectedError(ConnectionResetError):
     pass

@@ -144,7 +144,7 @@ if __name__ == '__main__':
             p.join()
         else:
             queue.get() # lock console
-
+        prev_cmd = ""
         while p.is_alive():
             try:
                 cmd = input('cmd >> ')
@@ -153,7 +153,11 @@ if __name__ == '__main__':
             if cmd in ['exit', 'quit', 'q', 'bye', 'shutdown']:
                 p.kill()
                 break
-
+            if not cmd and prev_cmd:
+                cmd = prev_cmd
+            else:
+                prev_cmd = cmd
+            
             queue.put(cmd)
             time.sleep(0.2) # not needed
         if not p.is_alive():

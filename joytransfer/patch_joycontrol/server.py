@@ -12,9 +12,7 @@ from joycontrol.transport import L2CAP_Transport
 
 PROFILE_PATH = pkg_resources.resource_filename('joycontrol', 'profile/sdp_record_hid.xml')
 logger = logging.getLogger(__name__)
-logger.warning = lambda *x: print('[server] warning:', *x) # type: ignore
-logger.info = lambda *x: print('[server] info:', *x) # type: ignore
-logger.debug = lambda *x: print('[server] debug:', *x) # type: ignore
+logger.setLevel(logging.DEBUG)
 
 async def _send_empty_input_reports(transport):
     report = InputReport()
@@ -44,7 +42,6 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     protocol = protocol_factory()
 
     hid = HidDevice(device_id=device_id)
-    print(f"{hid.get_UUIDs()=}")
 
     bt_addr = hid.get_address()
 
