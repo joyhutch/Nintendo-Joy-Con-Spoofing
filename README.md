@@ -15,3 +15,17 @@
 ## Neccessary Hardware
 * ESP32 Board (not a newer model like ESP32-Sx)
 * Switch Console with Joycon controllers
+
+
+## Installation / Dependencies
+
+$ sudo apt install python3 python3-dbus libhidapi-hidraw0 libbluetooth-dev 
+$ sudo apt install pip
+$ sudo pip3 install aioconsole hid dbus-python crc8 hidapi
+
+$ git clone https://github.com/Poohl/joycontrol
+$ pip install -e ./joycontrol
+- '-e' parameter allows the joycontrol source code to be editing without needing to reinstall 
+
+$ sudo -E env PATH=$PATH python joytransfer.py
+
