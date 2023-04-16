@@ -58,16 +58,17 @@ async def _main(args, c, q, reconnect_bt_addr=None):
         else:
             print('INFO: Press the button A or B or HOME')
 
-        while 1:
+        while True:
             await asyncio.sleep(0.2)
 
     q.put('unlock') # unlock console
     print('hi :3')
 
-    while 1:
+    while True:
         cmd = q.get() # wait command
-
-        await test_button(controller_state, cmd)
+        cmds = cmd.split() if ' ' in cmd else [cmd] 
+        for c in cmds:
+            await test_button(controller_state, c)
 
 '''
 NINTENDO SWITCH
@@ -144,7 +145,7 @@ if __name__ == '__main__':
             p.join()
         else:
             queue.get() # lock console
-
+        prev_cmd = ""
         while p.is_alive():
             try:
                 cmd = input('cmd >> ')
@@ -153,11 +154,15 @@ if __name__ == '__main__':
             if cmd in ['exit', 'quit', 'q', 'bye', 'shutdown']:
                 p.kill()
                 break
-
+            if not cmd and prev_cmd:
+                cmd = prev_cmd
+            else:
+                prev_cmd = cmd
+            
             queue.put(cmd)
             time.sleep(0.2) # not needed
-        if not p.is_alive():
-            print("\nprocess died :(")
+        # if not p.is_alive():
+        #     print("\nprocess died :(")
         # wait reconnection
         time.sleep(2) # important 2 or more
         count += 1

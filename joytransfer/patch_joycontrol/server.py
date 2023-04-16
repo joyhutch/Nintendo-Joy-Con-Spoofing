@@ -12,9 +12,7 @@ from joycontrol.transport import L2CAP_Transport
 
 PROFILE_PATH = pkg_resources.resource_filename('joycontrol', 'profile/sdp_record_hid.xml')
 logger = logging.getLogger(__name__)
-logger.warning = lambda *x: print('[server] warning:', *x) # type: ignore
-logger.info = lambda *x: print('[server] info:', *x) # type: ignore
-logger.debug = lambda *x: print('[server] debug:', *x) # type: ignore
+logger.setLevel(logging.DEBUG)
 
 async def _send_empty_input_reports(transport):
     report = InputReport()
@@ -44,7 +42,6 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     protocol = protocol_factory()
 
     hid = HidDevice(device_id=device_id)
-    print(f"{hid.get_UUIDs()=}")
 
     bt_addr = hid.get_address()
 
@@ -54,15 +51,15 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
         if interactive:
             if len(hid.get_UUIDs()) > 3:
                 print("too many SPD-records active, Switch might refuse connection.")
-                print("try modifieing /lib/systemd/system/bluetooth.service and see")
-                print("https://github.com/Poohl/joycontrol/issues/4 if it doesn't work")
+                # print("try modifieing /lib/systemd/system/bluetooth.service and see")
+                # print("https://github.com/Poohl/joycontrol/issues/4 if it doesn't work")
             for sw in hid.get_paired_switches():
-                print(f"Warning: a switch ({sw}) was found paired, do you want to unpair it?")
+                print(f"Warning: a switch ({sw}) was found paired, unpairing")
                 # i = input("y/n [y]: ")
                 if True: # not i.strip() or i == 'y' or i == 'Y'
-                    print("attempting to unpair...", end="")
+                    # print("attempting to unpair...", end="")
                     hid.unpair_path(sw)
-                    print("unpaired.")
+                    # print("unpaired.")
         else:
             if len(hid.get_UUIDs()) > 3:
                 logger.warning("detected too many SDP-records. Switch might refuse connection.")
@@ -183,7 +180,7 @@ async def create_hid_server(protocol_factory, ctl_psm=17, itr_psm=19, device_id=
     protocol.connection_made(transport)
 
     # HACK: send some empty input reports until the Switch decides to reply
-    # future = asyncio.ensure_future(_send_empty_input_reports(transport))
+    future = asyncio.ensure_future(_send_empty_input_reports(transport))
     await protocol.wait_for_output_report()
     
     # future.cancel()

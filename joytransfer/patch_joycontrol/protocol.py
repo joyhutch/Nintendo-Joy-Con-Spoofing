@@ -4,6 +4,7 @@ import time
 from asyncio import BaseTransport, BaseProtocol
 from typing import Optional, Union, Tuple, Text
 import math
+from traceback import print_exc
 
 import enum
 import joycontrol.debug as debug
@@ -18,7 +19,7 @@ from joycontrol.transport import NotConnectedError
 from joycontrol.mcu import MicroControllerUnit
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 def controller_protocol_factory(controller: Controller, spi_flash=None, reconnect = False):
     if isinstance(spi_flash, bytes):
@@ -172,6 +173,8 @@ class ControllerProtocol(BaseProtocol):
             try:
                 await self._write(input_report)
             except:
+                print_exc()
+                
                 break
 
             # calculate delay
@@ -187,6 +190,7 @@ class ControllerProtocol(BaseProtocol):
                 self._input_report_wakeup.clear()
             except asyncio.TimeoutError as err:
                 pass
+                # logger.warning("Writer timed out...")
 
         logger.warning("Writer exited...")
         return None

@@ -28,7 +28,7 @@ class MySemaphore(asyncio.Semaphore):
         if count < 0:
             raise ValueError("Semaphore acquire with count < 0")
         while self._value < count:
-            r = _Request(count, self._loop)
+            r = _Request(count, self._get_loop())
             self._waiters.append(r)
             try:
                 await r.future

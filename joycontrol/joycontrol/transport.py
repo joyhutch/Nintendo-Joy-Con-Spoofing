@@ -11,7 +11,7 @@ from joycontrol import utils
 from joycontrol.my_semaphore import MyBoundedSemaphore
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class NotConnectedError(ConnectionResetError):
     pass
@@ -87,12 +87,12 @@ class L2CAP_Transport(asyncio.Transport):
         await self._is_reading.wait()
         data = await self._loop.sock_recv(self._itr_sock, self._read_buffer_size)
 
-        # logger.debug(f'received "{list(data)}"')
+        logger.info(f'received "{list(data)}"')
 
         if not data:
             # disconnect happened
-            logger.error('No data received.')
-            self._protocol.connection_lost()
+            logger.error('No data received.' + str(data))
+            self._protocol.connection_lost(None)
 
         if self._capture_file is not None:
             # write data to log file
@@ -147,10 +147,10 @@ class L2CAP_Transport(asyncio.Transport):
 # are asnyc. This is because the official API has no control over time and
 # imho is quite lacking...
 
-    def abort():
+    def abort(self):
         raise NotImplementedError()
 
-    def can_write_eof():
+    def can_write_eof(self):
         return False
 
     def get_write_buffer_size(self):
@@ -184,15 +184,15 @@ class L2CAP_Transport(asyncio.Transport):
             await self._write_lock.wait()
             await self._loop.sock_sendall(self._itr_sock, _bytes)
         except OSError as err:
-            logger.error(err)
-            self._protocol.connection_lost()
-        except ConnectionResetError as err:
-            logger.error(err)
-            self._protocol.connection_lost()
+            logger.exception(err)
+            self._protocol.connection_lost(err)
+        # except ConnectionResetError as err:
+        #     logger.error(err)
+        #     self._protocol.connection_lost()
 
-    async def writelines(*data):
+    async def writelines(self, *data):
         for d in data:
-            await self.write(data)
+            await self.write(d)
 
     def pause_writing(self):
         logger.info("pause transport write")
