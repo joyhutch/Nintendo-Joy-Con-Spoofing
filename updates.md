@@ -82,14 +82,16 @@ Met with the professor to confirm goals and get a better understanding of resour
 
 ## April 16th
 
+- setting up vm
+  - download 22.04 image
+  - add user to sudoers
+  - sudo apt-get install openssh-server
+  - port forwarding in vm box settings
 - updating Ubuntu 20.4 to 22.4 to fix error
     `AttributeError: /lib/x86_64-linux-gnu/libhidapi-hidraw.so.0: undefined symbol: hid_get_input_report`
 - in server.py in create_hid_server (line 23), requesting input() in async function funky
 - **Note: while creating HidDevice, setting up a control and interupt socket, bind those for listening, set the name, set the HidDevice to being powered on and pairable, set HidDevice name, set profile path, set to discoverable, then set_class is called from device.py
   - sets the HidDevice class to '0x002508' which corresponds to a (Gamepad/Joystick)
 
-- setting up vm
-  - download 22.04 image
-  - add user to sudoers
-  - sudo apt-get install openssh-server
-  - port forwarding in vm box settings
+- WORKS :) (can implement certain game play moves while in game)
+  - only works on Ava's computer
