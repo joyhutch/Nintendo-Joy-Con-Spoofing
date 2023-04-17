@@ -4,14 +4,13 @@ import os
 import time
 import argparse
 import asyncio
-import logging
 
 from multiprocessing import Process
 from multiprocessing import Queue
 
-from joycontrol import utils
 from joycontrol.controller import Controller
-from joycontrol.memory import FlashMemory
+from run_controller_cli import _register_commands_with_controller_state
+from patch_joycontrol.cli import QueueCLI
 from patch_joycontrol.protocol import controller_protocol_factory
 from patch_joycontrol.server import create_hid_server
 
@@ -28,7 +27,7 @@ async def _main(args, c, q, reconnect_bt_addr=None):
     ctl_psm, itr_psm = 17, 19
 
     print('', end='\n' if c else ' ')
-    print('  Joy Transfer  v0.1')
+    print('Nintendo Joy-Con Spoofing')
     print('INFO: Waiting for Switch to connect...', end='\n' if c else ' ')
 
     if c < 1:
@@ -64,11 +63,15 @@ async def _main(args, c, q, reconnect_bt_addr=None):
     q.put('unlock') # unlock console
     print('hi :3')
 
-    while True:
-        cmd = q.get() # wait command
-        cmds = cmd.split() if ' ' in cmd else [cmd] 
-        for c in cmds:
-            await test_button(controller_state, c)
+    # Create command line interface and add some extra commands
+    cli = QueueCLI(controller_state, q)
+    _register_commands_with_controller_state(controller_state, cli)
+    await cli.run()
+    # while True:
+    #     cmd = q.get() # wait command
+    #     cmds = cmd.split() if ' ' in cmd else [cmd] 
+    #     for c in cmds:
+    #         await test_button(controller_state, c)
 
 '''
 NINTENDO SWITCH
@@ -107,7 +110,7 @@ count = 0
 
 def test(args, c, q, b):
     try:
-        loop.run_until_complete(
+        return loop.run_until_complete(
             _main(args, c, q, b)
         )
     except:
@@ -160,7 +163,7 @@ if __name__ == '__main__':
                 prev_cmd = cmd
             
             queue.put(cmd)
-            time.sleep(0.2) # not needed
+            # time.sleep(0.2) # not needed
         # if not p.is_alive():
         #     print("\nprocess died :(")
         # wait reconnection

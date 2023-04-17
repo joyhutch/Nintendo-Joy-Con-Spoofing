@@ -21,12 +21,10 @@ from joycontrol.mcu import MicroControllerUnit
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-def controller_protocol_factory(controller: Controller, spi_flash=None, reconnect = False):
-    if isinstance(spi_flash, bytes):
-        spi_flash = FlashMemory(spi_flash_memory_data=spi_flash)
+def controller_protocol_factory(controller: Controller, reconnect = False):
 
     def create_controller_protocol():
-        return ControllerProtocol(controller, spi_flash=spi_flash, reconnect = reconnect)
+        return ControllerProtocol(controller, spi_flash=FlashMemory(default_stick_cal=True), reconnect = reconnect)
 
     return create_controller_protocol
 

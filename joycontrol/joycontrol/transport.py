@@ -183,7 +183,7 @@ class L2CAP_Transport(asyncio.Transport):
             await self._write_window.acquire()
             await self._write_lock.wait()
             await self._loop.sock_sendall(self._itr_sock, _bytes)
-        except OSError as err:
+        except (OSError, asyncio.CancelledError) as err:
             logger.exception(err)
             self._protocol.connection_lost(err)
         # except ConnectionResetError as err:
