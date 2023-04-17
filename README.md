@@ -33,3 +33,9 @@ $ pip install -e ./joycontrol
 - '-e' parameter allows the joycontrol source code to be editing without needing to reinstall
 
 $ sudo -E env PATH=$PATH python joyspoof.py
+
+## Combos
+
+- nair
+- recovery
+-
