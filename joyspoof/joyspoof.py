@@ -10,6 +10,7 @@ from multiprocessing import Queue
 
 from joycontrol.controller import Controller
 from run_controller_cli import _register_commands_with_controller_state
+from patch_joycontrol.combos import register_combos
 from patch_joycontrol.cli import QueueCLI
 from patch_joycontrol.protocol import controller_protocol_factory
 from patch_joycontrol.server import create_hid_server
@@ -66,6 +67,7 @@ async def _main(args, c, q, reconnect_bt_addr=None):
     # Create command line interface and add some extra commands
     cli = QueueCLI(controller_state, q)
     _register_commands_with_controller_state(controller_state, cli)
+    register_combos(controller_state, cli)
     await cli.run()
     # while True:
     #     cmd = q.get() # wait command
