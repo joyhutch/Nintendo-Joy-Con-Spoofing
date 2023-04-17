@@ -2,7 +2,6 @@
 
 from multiprocessing import Queue
 import shlex
-from aioconsole import ainput
 from joycontrol.command_line_interface import ControllerCLI
 from joycontrol.controller_state import button_push, ControllerState
 from joycontrol.transport import NotConnectedError
