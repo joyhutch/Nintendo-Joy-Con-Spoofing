@@ -8,10 +8,8 @@
             "name": "joyspoof",
             "type": "python",
             "request": "launch",
-            "program": "/home/ava/project/joyspoof/joyspoof.py",
-            "args": [
-                "--auto",
-            ],
+            "program": "/home/ava/project/run.py",
+            "args": [],
             "console": "integratedTerminal",
             "justMyCode": false,
             "sudo": true

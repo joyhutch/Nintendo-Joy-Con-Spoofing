@@ -4,158 +4,107 @@ import os
 import time
 import argparse
 import asyncio
+import logging
 
 from multiprocessing import Process
 from multiprocessing import Queue
 
 from joycontrol.controller import Controller
-from run_controller_cli import _register_commands_with_controller_state
-from patch_joycontrol.combos import register_combos
+from joycontrol.memory import FlashMemory
+from joycontrol.protocol import controller_protocol_factory
 from patch_joycontrol.cli import QueueCLI
-from patch_joycontrol.protocol import controller_protocol_factory
 from patch_joycontrol.server import create_hid_server
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
-async def _main(args, c, q, reconnect_bt_addr=None):
 
-    # Get controller name to emulate from arguments
-    controller = Controller.PRO_CONTROLLER
+async def run(iteration, queue, reconnect_bt_addr=None):
 
-    # prepare the the emulated controller
-    factory = controller_protocol_factory(controller,
-                            reconnect = reconnect_bt_addr)
+    factory = controller_protocol_factory(Controller.PRO_CONTROLLER,
+                                          reconnect=reconnect_bt_addr,
+                                          spi_flash=FlashMemory(default_stick_cal=True))
 
     ctl_psm, itr_psm = 17, 19
 
-    print('', end='\n' if c else ' ')
-    print('Nintendo Joy-Con Spoofing')
-    print('INFO: Waiting for Switch to connect...', end='\n' if c else ' ')
+    if iteration == 0:
+        log.info('Welcome to Nintendo Joy-Con Spoofing')
+    else:
+        log.info('Reconnecting...')
+    if iteration == 0:
+        log.info(
+            'Waiting for Switch to connect, Please open the "Change Grip/Order" menu')
 
-    if c < 1:
-        print('Please open the "Change Grip/Order" menu')
-
-    transport, protocol, ns_addr = await create_hid_server(factory,
-                                                  reconnect_bt_addr=reconnect_bt_addr,
-                                                  ctl_psm=ctl_psm,
-                                                  itr_psm=itr_psm,
-                                                  unpair = not reconnect_bt_addr)
+    _, protocol, ns_addr = await create_hid_server(factory,
+                                                   reconnect_bt_addr=reconnect_bt_addr,
+                                                   ctl_psm=ctl_psm,
+                                                   itr_psm=itr_psm,
+                                                   unpair=not reconnect_bt_addr)
     controller_state = protocol.get_controller_state()
-
-    # this is needed
     await controller_state.connect()
 
     if not reconnect_bt_addr:
         reconnect_bt_addr = ns_addr
-        q.put(ns_addr)
+        queue.put(ns_addr)
 
-    # wait back home in nintendo switch
-    if c < 1:
-        print('INFO: NINTENDO SWITCH', reconnect_bt_addr)
-        if args.auto:
-            controller_state.button_state.set_button('a', pushed=True)
-            await controller_state.send()
-            print('Sent `A`')
-        else:
-            print('INFO: Press the button A or B or HOME')
-
+    if iteration == 0:  # first iteration we need to pair and connect
+        log.info('Nintendo Switch Address: %s', reconnect_bt_addr)
+        controller_state.button_state.set_button('a', pushed=True)
+        await controller_state.send()
         while True:
             await asyncio.sleep(0.2)
 
-    q.put('unlock') # unlock console
-    print('hi :3')
+    queue.put('unlock')  # unlock console
 
-    # Create command line interface and add some extra commands
-    cli = QueueCLI(controller_state, q)
-    _register_commands_with_controller_state(controller_state, cli)
-    register_combos(controller_state, cli)
-    await cli.run()
-    # while True:
-    #     cmd = q.get() # wait command
-    #     cmds = cmd.split() if ' ' in cmd else [cmd] 
-    #     for c in cmds:
-    #         await test_button(controller_state, c)
+    # create and run the cli
+    await QueueCLI(controller_state, queue).run()
 
-'''
-NINTENDO SWITCH
-    - version 12.1.0
-    - version 13.0.0
-'''
-async def test_button(ctrl, btn):
-        available_buttons = ctrl.button_state.get_available_buttons()
 
-        if btn == 'wake':
-            # wake up control
-            ctrl.button_state.clear()
-            await ctrl.send()
-            await asyncio.sleep(0.050) # stable minimum 0.050
-
-        if btn not in available_buttons:
-            return 1
-
-        ctrl.button_state.set_button(btn, pushed=True)
-        await ctrl.send()
-
-        await asyncio.sleep(0.050) # stable minimum 0.050 press
-        ctrl.button_state.set_button(btn, pushed=False)
-        await ctrl.send()
-        await asyncio.sleep(0.020) # stable minimum 0.020 release
-
-        return 0
-
-def handle_exception(loop, context):
-    tasks = [t for t in asyncio.all_tasks() if t is not
-                         asyncio.current_task()]
-    for task in tasks:
-        task.cancel()
-
-count = 0
-
-def test(args, c, q, b):
+def runner(loop, iteration_count, queue, switch_addr):
     try:
-        return loop.run_until_complete(
-            _main(args, c, q, b)
+        loop.run_until_complete(
+            run(iteration_count, queue, switch_addr)
         )
     except:
         pass
 
-if __name__ == '__main__':
 
-    # check if root
-    if not os.geteuid() == 0:
-        raise PermissionError('Script must be run as root!')
-
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--auto', dest='auto', action='store_true')
     parser.add_argument('-r', '--reconnect_bt_addr', type=str, default=None,
                         help='The Switch console Bluetooth address (or "auto" for automatic detection), for reconnecting as an already paired controller.')
     args = parser.parse_args()
 
     loop = asyncio.get_event_loop()
+
+    def handle_exception(*_a, **_kw):
+        tasks = [t for t in asyncio.all_tasks() if t is not
+                 asyncio.current_task()]
+        for task in tasks:
+            task.cancel()
     loop.set_exception_handler(handle_exception)
 
     queue = Queue()
 
-    cmd = None
+    switch_addr = args.reconnect_bt_addr
+    begin = 1 if switch_addr else 0
 
-    ns_addr = args.reconnect_bt_addr
-    if ns_addr:
-        count = 1
-
-    for _ in range(2 - count):
-        p = Process(target=test, args=(args, count, queue, ns_addr))
+    for iteration in range(begin, 2):
+        p = Process(target=runner, args=(
+            loop, iteration, queue, switch_addr))
         p.start()
 
-        if count < 1:
-            ns_addr = queue.get() # wait nintendo switch address
+        if iteration == 0:
+            switch_addr = queue.get()  # wait nintendo switch address
             p.join()
         else:
-            queue.get() # lock console
-        prev_cmd = ""
+            queue.get()  # lock console
+        prev_cmd = None
         while p.is_alive():
             try:
                 cmd = input('cmd >> ')
             except EOFError:
-                cmd = 'q'
+                cmd = 'q'  # ctrl+d == quit
             if cmd in ['exit', 'quit', 'q', 'bye', 'shutdown']:
                 p.kill()
                 break
@@ -163,13 +112,17 @@ if __name__ == '__main__':
                 cmd = prev_cmd
             else:
                 prev_cmd = cmd
-            
-            queue.put(cmd)
-            # time.sleep(0.2) # not needed
-        # if not p.is_alive():
-        #     print("\nprocess died :(")
-        # wait reconnection
-        time.sleep(2) # important 2 or more
-        count += 1
 
-    print("bye")
+            queue.put(cmd)
+
+        # wait reconnection
+        time.sleep(2)  # important 2 or more
+
+    log.info("Exiting.")
+
+
+if __name__ == '__main__':
+    # check if root
+    if os.geteuid() != 0:
+        raise PermissionError('Script must be run as root!')
+    main()
