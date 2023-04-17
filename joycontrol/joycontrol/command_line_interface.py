@@ -110,15 +110,15 @@ class ControllerCLI(CLI):
 
     @staticmethod
     def _set_stick(stick, direction, value):
-        if direction == 'center':
+        if direction in ('center', 'c'):
             stick.set_center()
-        elif direction == 'up':
+        elif direction in ('up', 'u'):
             stick.set_up()
-        elif direction == 'down':
+        elif direction in ('down', 'd'):
             stick.set_down()
-        elif direction == 'left':
+        elif direction in ('left', 'l'):
             stick.set_left()
-        elif direction == 'right':
+        elif direction in ('right', 'r'):
             stick.set_right()
         elif direction in ('h', 'horizontal'):
             if value is None:
@@ -137,7 +137,7 @@ class ControllerCLI(CLI):
                 raise ValueError(f'Unexpected stick value "{value}"')
             stick.set_v(val)
         else:
-            raise ValueError(f'Unexpected argument "{direction}"')
+            raise ValueError(f'Unexpected argsument "{direction}"')
 
         return f'{stick.__class__.__name__} was set to ({stick.get_h()}, {stick.get_v()}).'
 
@@ -151,10 +151,10 @@ class ControllerCLI(CLI):
         """
         if side in ('l', 'left'):
             stick = self.controller_state.l_stick_state
-            return ControllerCLI._set_stick(stick, direction, value)
+            return self._set_stick(stick, direction, value)
         elif side in ('r', 'right'):
             stick = self.controller_state.r_stick_state
-            return ControllerCLI._set_stick(stick, direction, value)
+            return self._set_stick(stick, direction, value)
         else:
             raise ValueError('Value of side must be "l", "left" or "r", "right"')
 
