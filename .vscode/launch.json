@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "joytransfer",
+            "name": "joyspoof",
             "type": "python",
             "request": "launch",
-            "program": "/home/ava/project/joytransfer/joytransfer.py",
+            "program": "/home/ava/project/joyspoof/joyspoof.py",
             "args": [
                 "--auto",
             ],

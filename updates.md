@@ -95,3 +95,19 @@ Met with the professor to confirm goals and get a better understanding of resour
 
 - WORKS :) (can implement certain game play moves while in game)
   - only works on Ava's computer
+
+## April 17
+
+- bluetooth commands
+  $ hcitool dev
+  $ hciconfig -a
+  $ rfkill
+  $ bluetoothctl
+  $ sudo service bluetooth status
+
+  $ sudo systemctl enable bluetooth.service
+  $ sudo systemctl start bluetooth.service
+
+  $ sudo rfkill unblock bluetooth
+  [reboot]
+  
