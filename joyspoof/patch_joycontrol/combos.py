@@ -48,12 +48,11 @@ def register_combos(controller_state: ControllerState, cli: QueueCLI):
 
     async def throw(d):
         """
-        Throw [Direction] (Grab + Direction)
+        Throw in the given direction (Grab + Direction)
         """
         dir = DIRS[d]
         await controller_state.connect()
         await button_push(controller_state, 'l')
-
 
         await cli.cmd_stick("l", dir)
         await cli.cmd_stick("l", "center")
@@ -62,7 +61,7 @@ def register_combos(controller_state: ControllerState, cli: QueueCLI):
 
     async def f(d):
         """
-        Face the given direction
+        Face the given direction (Tap Left Stick + Direction)
         """
         dir = DIRS[d]
         await controller_state.connect()
@@ -74,11 +73,44 @@ def register_combos(controller_state: ControllerState, cli: QueueCLI):
 
     async def m(d):
         """
-        Move in the given direction
+        Move in the given direction (Hold Left Stick + Direction)
         """
         dir = DIRS[d]
         await controller_state.connect()
         await cli.cmd_stick("l", dir)
 
     cli.add_command(m.__name__, m)
-    
+
+    async def s(d):
+        """
+        Smash attack in the given direction (Tap Right Stick + Direction)
+        """
+        dir = DIRS[d]
+        await controller_state.connect()
+        await cli.cmd_stick("r", dir)
+        sleep(0.1)
+        await cli.cmd_stick("r", "center")
+
+    cli.add_command(m.__name__, m)
+
+    async def t(d):
+        """
+        Tilt attack in the given direction (Tap Left Stick + Direction)
+        """
+        await controller_state.connect()
+        await cli.cmd_stick("l", dir)
+        await button_press(controller_state, "a")
+        await cli.cmd_stick("l", "center")
+
+    cli.add_command(t.__name__, t)
+
+    async def sp(d):
+        """
+        Special attack in the given direction (Tap Left Stick + Direction + B)
+        """
+        await controller_state.connect()
+        await cli.cmd_stick("l", dir)
+        await button_press(controller_state, "b")
+        await cli.cmd_stick("l", "center")
+
+    cli.add_command(sp.__name__, sp)
