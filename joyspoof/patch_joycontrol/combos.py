@@ -23,18 +23,6 @@ def register_combos(controller_state: ControllerState, cli: QueueCLI):
     :param controller_state:
     """
 
-    async def n():
-        """
-        Neutral Air Attack (Jump + A) 
-        """
-        await controller_state.connect()
-
-        await button_push(controller_state, "x")
-        await button_push(controller_state, "a")
-        pass
-
-    cli.add_command(n.__name__, n)
-
     async def r():
         """
         Recovery Move (Up B)
@@ -95,7 +83,7 @@ def register_combos(controller_state: ControllerState, cli: QueueCLI):
 
     async def t(d):
         """
-        Tilt attack in the given direction (Tap Left Stick + Direction)
+        Tilt attack in the given direction (Tap Left Stick + Direction + A)
         """
         await controller_state.connect()
         await cli.cmd_stick("l", dir)
@@ -104,13 +92,33 @@ def register_combos(controller_state: ControllerState, cli: QueueCLI):
 
     cli.add_command(t.__name__, t)
 
-    async def sp(d):
+    async def c1():
         """
-        Special attack in the given direction (Tap Left Stick + Direction + B)
+        Arial combo - Jump > A > Up Smash 
         """
         await controller_state.connect()
-        await cli.cmd_stick("l", dir)
-        await button_press(controller_state, "b")
-        await cli.cmd_stick("l", "center")
+        await button_press(controller_state, "x")
+        sleep(1)
+        await button_press(controller_state, "a")
+        await s("up")
 
-    cli.add_command(sp.__name__, sp)
+    cli.add_command(c1.__name__, c1)
+
+    async def c2():
+        """
+        Ground combo - Up Smash > Up Tilt > X > Up Air > Up Air > Up Special
+        """
+        await controller_state.connect()
+        await s("up")
+        sleep(0.5)
+        await t("up")
+        sleep(0.5)
+        await button_press("x")
+        sleep(0.1)
+        await t("up")
+        sleep(0.1)
+        await t("up")
+        sleep(0.3)
+        await r()
+
+    cli.add_command(c2.__name__, c2)
