@@ -7,7 +7,7 @@ import logging
 from joycontrol.command_line_interface import DIRS, ControllerCLI
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+# log.setLevel(logging.DEBUG)
 
 
 def register_combos(controller_state: ControllerState, cli: ControllerCLI):
@@ -18,16 +18,19 @@ def register_combos(controller_state: ControllerState, cli: ControllerCLI):
     :param controller_state:
     """
 
-    async def r():
+    async def push(b):
+        await button_push(controller_state, b, sec=0.05)
+
+    async def rec():
         """
         Recovery Move (Up B)
         """
         await controller_state.connect()
         await cli.cmd_stick("l", "up")
-        await button_push(controller_state, "b")
+        await push("b")
         await cli.cmd_stick("l", "center")
 
-    cli.add_command(r.__name__, r)
+    cli.add_command(rec.__name__, rec)
 
     async def throw(d):
         """
@@ -35,7 +38,7 @@ def register_combos(controller_state: ControllerState, cli: ControllerCLI):
         """
         dir = DIRS[d]
         await controller_state.connect()
-        await button_push(controller_state, "l")
+        await push("l")
 
         await cli.cmd_stick("l", dir)
         await cli.cmd_stick("l", "center")
@@ -83,7 +86,7 @@ def register_combos(controller_state: ControllerState, cli: ControllerCLI):
         dir = DIRS[d]
         await controller_state.connect()
         await cli.cmd_stick("l", dir)
-        await button_push(controller_state, "a")
+        await push("a")
         await cli.cmd_stick("l", "center")
 
     cli.add_command(t.__name__, t)
@@ -93,34 +96,38 @@ def register_combos(controller_state: ControllerState, cli: ControllerCLI):
         Arial combo - Jump > A > Up Smash
         """
         await controller_state.connect()
-        await button_push(controller_state, "x")
-        await sleep(0.5)
-        await button_push(controller_state, "a")
+        await push("x")
+        await sleep(0.2)
+        # await push("a")
         await s("up")
 
     cli.add_command(c1.__name__, c1)
 
-    async def c2():
+    async def c2(*time):
         """
         Ground combo - Up Smash > Up Tilt > X > Up Air > Up Air > Up Special
         """
+        if time:
+            time = float(time[0])
+        else:
+            time = 0.1
         await controller_state.connect()
         await s("up")
         log.debug("up smash")
-        await sleep(0.1)
+        await sleep(time)
         await t("up")
         log.debug("tilt up")
-        await sleep(0.1)
-        await button_push("x")
+        await sleep(time)
+        await push("x")
         log.debug("jump")
-        await sleep(0.05)
+        await sleep(time)
         await t("up")
         log.debug("tilp up")
-        await sleep(0.05)
+        await sleep(time)
         await t("up")
         log.debug("tilp up")
-        await sleep(0.1)
-        await r()
+        await sleep(time)
+        await rec()
         log.debug("recovery")
 
     cli.add_command(c2.__name__, c2)
