@@ -1,6 +1,7 @@
 import inspect
 import logging
 import shlex
+from collections import defaultdict
 
 from aioconsole import ainput
 
@@ -8,6 +9,23 @@ from joycontrol.controller_state import button_push, ControllerState
 from joycontrol.transport import NotConnectedError
 
 logger = logging.getLogger(__name__)
+
+
+class DefaultDict(defaultdict):
+    def __missing__(self, key):
+        return self.default_factory(key)  # type: ignore
+
+
+DIRS = DefaultDict(
+    str,
+    {
+        "u": "up",
+        "d": "down",
+        "l": "left",
+        "r": "right",
+        "c": "center",
+    },
+)
 
 
 def _print_doc(string):
@@ -19,7 +37,7 @@ def _print_doc(string):
 
     :param fun: function to print the doc string of
     """
-    lines = string.split('\n')
+    lines = string.split("\n")
     if lines:
         prefix_i = 0
         for i, line_0 in enumerate(lines):
@@ -29,8 +47,11 @@ def _print_doc(string):
                 for prefix_i, c in enumerate(line_0):
                     if not c.isspace():
                         break
-                    if any(lines[j].strip() and (prefix_i >= len(lines[j]) or c != lines[j][prefix_i])
-                           for j in range(i+1, len(lines))):
+                    if any(
+                        lines[j].strip()
+                        and (prefix_i >= len(lines[j]) or c != lines[j][prefix_i])
+                        for j in range(i + 1, len(lines))
+                    ):
                         break
                 break
 
@@ -44,13 +65,13 @@ class CLI:
 
     def add_command(self, name, command):
         if name in self.commands:
-            raise ValueError(f'Command {name} already registered.')
+            raise ValueError(f"Command {name} already registered.")
         self.commands[name] = command
 
     async def cmd_help(self):
-        print('Commands:')
+        print("Commands:")
         for name, fun in inspect.getmembers(self):
-            if name.startswith('cmd_') and fun.__doc__:
+            if name.startswith("cmd_") and fun.__doc__:
                 _print_doc(fun.__doc__)
 
         for name, fun in self.commands.items():
@@ -62,19 +83,19 @@ class CLI:
 
     async def run(self):
         while True:
-            user_input = await ainput(prompt='cmd >> ')
+            user_input = await ainput(prompt="cmd >> ")
             if not user_input:
                 continue
 
-            for command in user_input.split('&&'):
+            for command in user_input.split("&&"):
                 cmd, *args = shlex.split(command)
 
-                if cmd == 'exit':
+                if cmd == "exit":
                     return
 
-                if hasattr(self, f'cmd_{cmd}'):
+                if hasattr(self, f"cmd_{cmd}"):
                     try:
-                        result = await getattr(self, f'cmd_{cmd}')(*args)
+                        result = await getattr(self, f"cmd_{cmd}")(*args)
                         if result:
                             print(result)
                     except Exception as e:
@@ -87,7 +108,7 @@ class CLI:
                     except Exception as e:
                         print(e)
                 else:
-                    print('command', cmd, 'not found, call help for help.')
+                    print("command", cmd, "not found, call help for help.")
 
     @staticmethod
     def deprecated(message):
@@ -103,43 +124,45 @@ class ControllerCLI(CLI):
         self.controller_state = controller_state
 
     async def cmd_help(self):
-        print('Button commands:')
-        print(', '.join(self.controller_state.button_state.get_available_buttons()))
+        print("Button commands:")
+        print(", ".join(self.controller_state.button_state.get_available_buttons()))
         print()
         await super().cmd_help()
 
     @staticmethod
     def _set_stick(stick, direction, value):
-        if direction in ('center', 'c'):
+        if direction in ("center", "c"):
             stick.set_center()
-        elif direction in ('up', 'u'):
+        elif direction in ("up", "u"):
             stick.set_up()
-        elif direction in ('down', 'd'):
+        elif direction in ("down", "d"):
             stick.set_down()
-        elif direction in ('left', 'l'):
+        elif direction in ("left", "l"):
             stick.set_left()
-        elif direction in ('right', 'r'):
+        elif direction in ("right", "r"):
             stick.set_right()
-        elif direction in ('h', 'horizontal'):
+        elif direction in ("h", "horizontal"):
             if value is None:
-                raise ValueError(f'Missing value')
+                raise ValueError(f"Missing value")
             try:
                 val = int(value)
             except ValueError:
                 raise ValueError(f'Unexpected stick value "{value}"')
             stick.set_h(val)
-        elif direction in ('v', 'vertical'):
+        elif direction in ("v", "vertical"):
             if value is None:
-                raise ValueError(f'Missing value')
+                raise ValueError(f"Missing value")
             try:
                 val = int(value)
             except ValueError:
                 raise ValueError(f'Unexpected stick value "{value}"')
             stick.set_v(val)
         else:
-            raise ValueError(f'Unexpected argsument "{direction}"')
+            raise ValueError(f'Unexpected argument "{direction}"')
 
-        return f'{stick.__class__.__name__} was set to ({stick.get_h()}, {stick.get_v()}).'
+        return (
+            f"{stick.__class__.__name__} was set to ({stick.get_h()}, {stick.get_v()})."
+        )
 
     async def cmd_stick(self, side, direction, value=None):
         """
@@ -149,34 +172,44 @@ class ControllerCLI(CLI):
                           'h', 'horizontal' or 'v', 'vertical' to set the value directly to the "value" argument
         :param value: horizontal or vertical value
         """
-        if side in ('l', 'left'):
+        if side in ("l", "left"):
             stick = self.controller_state.l_stick_state
             return self._set_stick(stick, direction, value)
-        elif side in ('r', 'right'):
+        elif side in ("r", "right"):
             stick = self.controller_state.r_stick_state
             return self._set_stick(stick, direction, value)
         else:
             raise ValueError('Value of side must be "l", "left" or "r", "right"')
 
     async def run(self):
+        prev = None
         while True:
-            user_input = await ainput(prompt='cmd >> ')
-            if not user_input:
-                continue
-
+            try:
+                user_input = await ainput(prompt="cmd >> ")
+            except EOFError:
+                break
+            if not user_input.strip():
+                if prev:
+                    user_input = prev
+                else:
+                    continue
+            user_input = DIRS[user_input]
+            prev = user_input
             buttons_to_push = []
 
-            for command in user_input.split('&&'):
+            for command in user_input.split("&&"):
                 cmd, *args = shlex.split(command)
 
-                if cmd == 'exit':
+                if cmd == "exit":
                     return
 
-                available_buttons = self.controller_state.button_state.get_available_buttons()
+                available_buttons = (
+                    self.controller_state.button_state.get_available_buttons()
+                )
 
-                if hasattr(self, f'cmd_{cmd}'):
+                if hasattr(self, f"cmd_{cmd}"):
                     try:
-                        result = await getattr(self, f'cmd_{cmd}')(*args)
+                        result = await getattr(self, f"cmd_{cmd}")(*args)
                         if result:
                             print(result)
                     except Exception as e:
@@ -191,7 +224,7 @@ class ControllerCLI(CLI):
                 elif cmd in available_buttons:
                     buttons_to_push.append(cmd)
                 else:
-                    print('command', cmd, 'not found, call help for help.')
+                    print("command", cmd, "not found, call help for help.")
 
             if buttons_to_push:
                 await button_push(self.controller_state, *buttons_to_push)
@@ -199,5 +232,5 @@ class ControllerCLI(CLI):
                 try:
                     await self.controller_state.send()
                 except NotConnectedError:
-                    logger.info('Connection was lost.')
+                    logger.info("Connection was lost.")
                     return
