@@ -156,12 +156,16 @@ class ControllerCLI(CLI):
             stick = self.controller_state.r_stick_state
             return self._set_stick(stick, direction, value)
         else:
-            raise ValueError('Value of side must be "l", "left" or "r", "right"')
+            raise ValueError(
+                'Value of side must be "l", "left" or "r", "right"')
+
+    async def get_input(self):
+        return await ainput(prompt='cmd >> ')
 
     async def run(self):
         while True:
-            user_input = await ainput(prompt='cmd >> ')
-            if not user_input:
+            user_input = self.get_input()
+            if not user_input.strip():
                 continue
 
             buttons_to_push = []
