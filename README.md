@@ -34,8 +34,33 @@ $ pip install -e ./joycontrol
 
 $ sudo -E env PATH=$PATH python joyspoof.py
 
-## Combos
+## Joy-Con Status Data Packet
 
-- nair
-- recovery
--
+19 81 03 38 00 92 00 31
+0  1  2  3  4  5  6  7  [Bytes 0-8, Fixed Header]
+
+00 00 e9 2e 30 7f 40 00
+8  9  10 11 12 13 14 15
+
+00 00 65 f7 81 00 00 00
+16 17 18 19 20 21 22 23 [Bytes 16 & 17, Button Status]
+                        [Byte 19, Joystick X value]
+                        [Byte 20, Joystick Y value]
+
+c0 23 01 e2 ff 3e 10 0a
+24 25 26 27 28 29 30 31
+
+00 d6 ff d0 ff 23 01 e1
+32 33 34 35 36 37 38 39 [Bytes 33 & 34, Gyroscope Y value]
+                        [Bytes 35 & 36, Gyroscope X val]
+                        [Bytes 37 & 38, Accelerometer X value]
+                        [Bytes 39 & 40, Accelerometer Y value]
+
+ff 37 10 0a 00 d6 ff cf
+40 41 42 43 44 45 46 47 [Bytes 41 & 42 Accelerometer Z value]
+
+ff 29 01 dd ff 34 10 0a
+48 49 50 51 52 53 54 55
+
+00 d7 ff ce ff
+56 57 58 59 60
