@@ -1,7 +1,7 @@
 # Nintendo-Joy-Con-Spoofing
+Welcome to the Nintendo Joy-Con Spoofing Project! This project, undertaken by Ava Silver and Joy Hutchison for CY4710 Security of Wireless Systems, under the guidance of Prof. Aanjhan Ranganathan, explores the fascinating world of Nintendo Switch controller spoofing. The mission was to understand the intricate communications between the Nintendo Switch console and its controllers, specifically the Joy-Con controllers, and create an emulated controller that could automate complex combos in games like Super Smash Bros. Ultimate.
 
 ## Referenced Repositories
-
 - <https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering>
 <!-- - https://github.com/JSnowden33/Wii-Bluetooth-Replacement -->
 <!-- - https://github.com/ricardoquesada/bluepad32 -->
